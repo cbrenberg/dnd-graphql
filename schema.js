@@ -10,6 +10,11 @@ const axios = require('axios');
 
 const BASE_URL = 'http://dnd5eapi.co/api'
 
+async function getSpellByIndex(index) {
+  const response = await axios.get(`${BASE_URL}/spells/${index}`);
+  return response.data;
+}
+
 const SpellType = new GraphQLObjectType({
   name: 'Spell',
   description: '...',
@@ -22,12 +27,12 @@ const SpellType = new GraphQLObjectType({
     index: { type: GraphQLInt },
     name: { type: GraphQLString },
     description: {
-      type: new GraphQLList(GraphQLString),
-      resolve: (spell) => spell.desc
+      type: GraphQLString,
+      resolve: (spell) => spell.desc[0]
     },
     higherLevel: {
-      type: new GraphQLList(GraphQLString),
-      resolve: (spell) => spell.higher_level
+      type: GraphQLString,
+      resolve: (spell) => spell.higher_level[0]
     },
     page: { type: GraphQLString },
     range: { type: GraphQLString },
@@ -38,7 +43,10 @@ const SpellType = new GraphQLObjectType({
     ritual: { type: GraphQLString },
     duration: { type: GraphQLString },
     concentration: { type: GraphQLString },
-    casting_time: { type: GraphQLString },
+    castingTime: {
+      type: GraphQLString,
+      resolve: spell => spell.casting_time
+    },
     level: { type: GraphQLInt },
     school: {
       type: new GraphQLObjectType({
@@ -90,14 +98,25 @@ const QueryType = new GraphQLObjectType({
           type: GraphQLInt
         }
       },
-      resolve: async (root, args) => {
-        const response = await axios.get(`${BASE_URL}/spells/${args.index}`)
-        console.log(response.data);
-        return response.data
+      resolve: (root, args) => {
+        return getSpellByIndex(args.index);
+      }
+    },
+    spells: {
+      type: new GraphQLList(SpellType),
+      resolve: async (root) => {
+        const { data: { results } } = await axios.get(`${BASE_URL}/spells`)
+        // console.log(results)
+        const dataToSend = results.map(async (spell) => {
+          // console.log(spell)
+          const { data } = await axios.get(spell.url);
+          // console.log(data)
+          return data;
+        })
+        return dataToSend;
       }
     }
   })
-
 })
 
 module.exports = new GraphQLSchema({
