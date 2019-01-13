@@ -1,7 +1,9 @@
+const SpellType = require('./types/spellType');
+const ClassType = require('./types/classType');
+
 const {
   GraphQLSchema,
   GraphQLObjectType,
-  GraphQLString,
   GraphQLInt,
   GraphQLList,
 } = require('graphql');
@@ -15,76 +17,10 @@ async function getSpellByIndex(index) {
   return response.data;
 }
 
-const SpellType = new GraphQLObjectType({
-  name: 'Spell',
-  description: '...',
-
-  fields: () => ({
-    id: {
-      type: GraphQLString,
-      resolve: (spell) => spell._id
-    },
-    index: { type: GraphQLInt },
-    name: { type: GraphQLString },
-    description: {
-      type: GraphQLString,
-      resolve: (spell) => spell.desc[0]
-    },
-    higherLevel: {
-      type: GraphQLString,
-      resolve: (spell) => spell.higher_level[0]
-    },
-    page: { type: GraphQLString },
-    range: { type: GraphQLString },
-    components: {
-      type: new GraphQLList(GraphQLString)
-    },
-    material: { type: GraphQLString },
-    ritual: { type: GraphQLString },
-    duration: { type: GraphQLString },
-    concentration: { type: GraphQLString },
-    castingTime: {
-      type: GraphQLString,
-      resolve: spell => spell.casting_time
-    },
-    level: { type: GraphQLInt },
-    school: {
-      type: new GraphQLObjectType({
-        name: 'school',
-        description: 'which school of magic',
-        fields: () => ({
-          name: { type: GraphQLString },
-          url: { type: GraphQLString }
-        })
-      })
-    },
-    classes: {
-      type: new GraphQLList(
-        new GraphQLObjectType({
-          name: "classes",
-          description: "classes with access to this spell",
-          fields: () => ({
-            name: { type: GraphQLString },
-            url: { type: GraphQLString }
-          })
-        })
-      )
-    },
-    subclasses: {
-      type: new GraphQLList(
-        new GraphQLObjectType({
-          name: "subclasses",
-          description: "subclasses with access to this spell",
-          fields: () => ({
-            name: { type: GraphQLString },
-            url: { type: GraphQLString }
-          })
-        })
-      )
-    },
-    url: { type: GraphQLString }
-  })
-})
+async function getClassByIndex(index) {
+  const response = await axios.get(`${BASE_URL}/classes/${index}`);
+  return response.data;
+}
 
 const QueryType = new GraphQLObjectType({
   name: 'Query',
@@ -104,13 +40,32 @@ const QueryType = new GraphQLObjectType({
     },
     spells: {
       type: new GraphQLList(SpellType),
-      resolve: async (root) => {
+      resolve: async () => {
         const { data: { results } } = await axios.get(`${BASE_URL}/spells`)
-        // console.log(results)
         const dataToSend = results.map(async (spell) => {
-          // console.log(spell)
           const { data } = await axios.get(spell.url);
-          // console.log(data)
+          return data;
+        })
+        return dataToSend;
+      }
+    },
+    class: {
+      type: ClassType,
+      args: {
+        index: {
+          type: GraphQLInt
+        }
+      },
+      resolve: (root, args) => {
+        return getClassByIndex(args.index);
+      }
+    },
+    classes: {
+      type: new GraphQLList(ClassType),
+      resolve: async () => {
+        const { data: { results } } = await axios.get(`${BASE_URL}/classes`)
+        const dataToSend = results.map(async (item) => {
+          const { data } = await axios.get(item.url);
           return data;
         })
         return dataToSend;
