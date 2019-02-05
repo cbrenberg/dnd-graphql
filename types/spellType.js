@@ -5,6 +5,8 @@ const {
   GraphQLList,
 } = require('graphql');
 
+const namedAPIResourceType = require('./namedAPIResourceType');
+
 const SpellType = new GraphQLObjectType({
   name: 'Spell',
   description: '...',
@@ -39,37 +41,16 @@ const SpellType = new GraphQLObjectType({
     },
     level: { type: GraphQLInt },
     school: {
-      type: new GraphQLObjectType({
-        name: 'school',
-        description: 'which school of magic',
-        fields: () => ({
-          name: { type: GraphQLString },
-          url: { type: GraphQLString }
-        })
-      })
+      type: namedAPIResourceType('schools')
     },
     classes: {
       type: new GraphQLList(
-        new GraphQLObjectType({
-          name: "classes",
-          description: "classes with access to this spell",
-          fields: () => ({
-            name: { type: GraphQLString },
-            url: { type: GraphQLString }
-          })
-        })
+        namedAPIResourceType('classes')
       )
     },
     subclasses: {
       type: new GraphQLList(
-        new GraphQLObjectType({
-          name: "subclasses",
-          description: "subclasses with access to this spell",
-          fields: () => ({
-            name: { type: GraphQLString },
-            url: { type: GraphQLString }
-          })
-        })
+        namedAPIResourceType('subclasses')
       )
     },
     url: { type: GraphQLString }

@@ -5,6 +5,10 @@ const {
   GraphQLList,
 } = require('graphql');
 
+const ChoiceType = require('./ChoiceType');
+const NamedAPIResourceType = require('./namedAPIResourceType');
+const classAPIResourceType = require('./classAPIResourceType');
+
 const ClassType = new GraphQLObjectType({
   name: 'Class',
   description: '...',
@@ -18,86 +22,31 @@ const ClassType = new GraphQLObjectType({
     name: { type: GraphQLString },
     hit_die: { type: GraphQLInt },
     proficiency_choices: {
-      type: new GraphQLList(
-        new GraphQLObjectType({
-          name: 'Proficiency_choices',
-          fields: () => ({
-            from: {
-              type: new GraphQLList(
-                new GraphQLObjectType({
-                  name: 'Skill',
-                  fields: () => ({
-                    name: { type: GraphQLString },
-                    url: { type: GraphQLString }
-                  })
-                })
-              )
-            },
-            type: { type: GraphQLString },
-            choose: { type: GraphQLInt }
-          })
-        })
-      )
+      type: ChoiceType('proficiency_choices', 'skills')
     },
     proficiencies: {
       type: new GraphQLList(
-        new GraphQLObjectType({
-          name: 'Proficiencies',
-          fields: () => ({
-            name: { type: GraphQLString },
-            url: { type: GraphQLString }
-          })
-        })
+        NamedAPIResourceType('proficiencies')
       )
     },
     saving_throws: {
       type: new GraphQLList(
-        new GraphQLObjectType({
-          name: 'saving_throw',
-          fields: () => ({
-            name: { type: GraphQLString },
-            url: { type: GraphQLString }
-          })
-        })
+        NamedAPIResourceType('saving_throws')
       )
     },
     starting_equipment: {
-      type: new GraphQLObjectType({
-        name: 'equipment',
-        fields: () => ({
-          url: { type: GraphQLString },
-          class: { type: GraphQLString }
-        })
-      })
+      type: classAPIResourceType('equipment')
     },
     class_levels: {
-      type: new GraphQLObjectType({
-        name: 'level',
-        fields: () => ({
-          url: { type: GraphQLString },
-          class: { type: GraphQLString }
-        })
-      })
+      type: classAPIResourceType('level')
     },
     subclasses: {
       type: new GraphQLList(
-        new GraphQLObjectType({
-          name: 'subclass',
-          fields: () => ({
-            name: { type: GraphQLString },
-            url: { type: GraphQLString }
-          })
-        })
+        NamedAPIResourceType('subclass')
       )
     },
     spellcasting: {
-      type: new GraphQLObjectType({
-        name: 'spellcasting',
-        fields: () => ({
-          class: { type: GraphQLString },
-          url: { type: GraphQLString }
-        })
-      })
+      type: classAPIResourceType('spellcasting')
     },
     url: { type: GraphQLString }
   })
