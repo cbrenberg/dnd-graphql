@@ -90,6 +90,15 @@ const ClassType = new GraphQLObjectType({
         })
       )
     },
+    spellcasting: {
+      type: new GraphQLObjectType({
+        name: 'spellcasting',
+        fields: () => ({
+          class: { type: GraphQLString },
+          url: { type: GraphQLString }
+        })
+      })
+    },
     url: { type: GraphQLString }
   })
 })
